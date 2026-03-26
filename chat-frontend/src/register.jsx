@@ -31,7 +31,8 @@ export default function Register({ setShowLogin }) {
       alert("Registered successfully 🚀");
       setShowLogin(true);
     } catch (err) {
-      alert(err.response?.data?.message || "Error");
+      console.log(err);
+      alert(JSON.stringify(err.response?.data || err.message));
     }
   };
 
