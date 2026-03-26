@@ -17,7 +17,7 @@ export default function Chat() {
   const userId = localStorage.getItem("userId");
 
   // 🔗 REFERRAL LINK
-  const referralLink = `${window.location.origin}/register?ref=${myCode}`;
+  const referralLink = `${import.meta.env.VITE_BASE_URL}/register?ref=${myCode}`;
 
   // 🔌 SOCKET
   useEffect(() => {
