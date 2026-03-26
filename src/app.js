@@ -5,7 +5,7 @@ const app = express();
 
 // ✅ CORS FIX
 app.use(cors({
-  origin: "*",
+  origin: "https://realtime-chat-app-phi-blush.vercel.app",
   credentials: true
 }));
 
