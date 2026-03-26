@@ -17,7 +17,7 @@ const server = http.createServer(app);
 // ✅ SOCKET SETUP
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: "https://realtime-chat-app-phi-blush.vercel.app",
     methods: ["GET", "POST"],
   },
 });
