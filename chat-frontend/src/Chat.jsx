@@ -17,7 +17,7 @@ export default function Chat() {
   const userId = localStorage.getItem("userId");
 
   // 🔗 REFERRAL LINK
-  const referralLink = `http://localhost:5173/register?ref=${myCode}`;
+  const referralLink = `${window.location.origin}/register?ref=${myCode}`;
 
   // 🔌 SOCKET
   useEffect(() => {
