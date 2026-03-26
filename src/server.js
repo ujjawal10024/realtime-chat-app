@@ -14,11 +14,15 @@ connectDB();
 // ✅ CREATE SERVER
 const server = http.createServer(app);
 
-// ✅ SOCKET SETUP
+// ✅ SOCKET SETUP (LOCAL + PRODUCTION)
 const io = new Server(server, {
   cors: {
-    origin: "https://realtime-chat-app-phi-blush.vercel.app",
+    origin: [
+      "http://localhost:5173", // ✅ local frontend
+      "https://realtime-chat-app-phi-blush.vercel.app" // ✅ production
+    ],
     methods: ["GET", "POST"],
+    credentials: true
   },
 });
 

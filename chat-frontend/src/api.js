@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://realtime-chat-app-kvxv.onrender.com/api", // ✅ FINAL CORRECT
+  baseURL: import.meta.env.VITE_API_URL, // ✅ dynamic ho gaya
 });
 
 API.interceptors.request.use((req) => {

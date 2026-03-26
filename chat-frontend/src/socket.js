@@ -1,6 +1,8 @@
 import { io } from "socket.io-client";
 
-const socket = io("https://realtime-chat-app-kvxv.onrender.com", {
+const URL = import.meta.env.VITE_API_URL.replace("/api", "");
+
+const socket = io(URL, {
   autoConnect: false,
 });
 
