@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://realtime-chat-app-kvxv.onrender.com", // ✅ FINAL CORRECT
+  baseURL: "https://realtime-chat-app-kvxv.onrender.com/api", // ✅ FINAL CORRECT
 });
 
 API.interceptors.request.use((req) => {
