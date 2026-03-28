@@ -4,9 +4,12 @@ import API from "./api";
 export default function Login({ setToken, setShowLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const login = async () => {
     try {
+      setLoading(true);
+
       const res = await API.post("/auth/login", { email, password });
 
       localStorage.setItem("token", res.data.token);
@@ -15,33 +18,35 @@ export default function Login({ setToken, setShowLogin }) {
       setToken(res.data.token);
     } catch (err) {
       alert("Login failed");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={{ padding: "50px" }}>
-      <h2>Login</h2>
+    <div className="login-container">
+      <div className="login-card">
+        <h2>Welcome👋</h2>
 
-      <input
-        placeholder="Email"
-        onChange={(e) => setEmail(e.target.value)}
-      />
+        <input
+          placeholder="Email"
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
-      <input
-        type="password"
-        placeholder="Password"
-        onChange={(e) => setPassword(e.target.value)}
-      />
+        <input
+          type="password"
+          placeholder="Password"
+          onChange={(e) => setPassword(e.target.value)}
+        />
 
-      <button onClick={login}>Login</button>
+        <button onClick={login} disabled={loading}>
+          {loading ? <div className="loader"></div> : "Login"}
+        </button>
 
-      {/* 🔥 FIXED BUTTON */}
-      <p
-        onClick={() => setShowLogin(false)}
-        style={{ cursor: "pointer", marginTop: "10px", color: "blue" }}
-      >
-        Create Account
-      </p>
+        <p onClick={() => setShowLogin(false)}>
+          Don’t have an account? <span>Register</span>
+        </p>
+      </div>
     </div>
   );
 }

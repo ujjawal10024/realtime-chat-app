@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import API from "./api";
 import socket from "./socket";
+import EmojiPicker from "emoji-picker-react";
 
 export default function Chat() {
+  const [showEmoji, setShowEmoji] = useState(false);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [users, setUsers] = useState([]);
@@ -16,10 +18,9 @@ export default function Chat() {
 
   const userId = localStorage.getItem("userId");
 
-  // 🔗 REFERRAL LINK
   const referralLink = `${import.meta.env.VITE_BASE_URL}/register?ref=${myCode}`;
 
-  // 🔌 SOCKET
+  /* ================= SOCKET ================= */
   useEffect(() => {
     socket.connect();
     socket.emit("join_room", userId);
@@ -42,21 +43,15 @@ export default function Chat() {
     };
   }, [selectedUser]);
 
-  // 🔥 GET MY REFERRAL CODE
+  /* ================= FETCH ================= */
   useEffect(() => {
     const fetchMe = async () => {
-      try {
-        const res = await API.get("/auth/me");
-        setMyCode(res.data.referralCode);
-      } catch (err) {
-        console.log("Referral fetch error:", err);
-      }
+      const res = await API.get("/auth/me");
+      setMyCode(res.data.referralCode);
     };
-
     fetchMe();
   }, []);
 
-  // 👥 FETCH FRIENDS
   useEffect(() => {
     const fetchFriends = async () => {
       const res = await API.get("/auth/friends");
@@ -65,7 +60,6 @@ export default function Chat() {
     fetchFriends();
   }, []);
 
-  // 📜 LOAD MESSAGES
   useEffect(() => {
     if (!selectedUser) return;
 
@@ -77,35 +71,29 @@ export default function Chat() {
     loadMessages();
   }, [selectedUser]);
 
-  // 📤 SEND MESSAGE
+  /* ================= SEND ================= */
   const sendMessage = async () => {
     if (!selectedUser || !message.trim()) return;
 
-    try {
-      const res = await API.post("/messages/send", {
-        receiverId: selectedUser._id,
-        message,
-      });
+    const res = await API.post("/messages/send", {
+      receiverId: selectedUser._id,
+      message,
+    });
 
-      const newMsg = res.data.message || res.data;
+    const newMsg = res.data.message || res.data;
 
-      if (!newMsg || !newMsg.content) return;
+    setMessages((prev) => [...prev, newMsg]);
 
-      setMessages((prev) => [...prev, newMsg]);
+    socket.emit("send_message", {
+      sender: userId,
+      receiverId: selectedUser._id,
+      content: newMsg.content,
+    });
 
-      socket.emit("send_message", {
-        sender: userId,
-        receiverId: selectedUser._id,
-        content: newMsg.content,
-      });
-
-      setMessage("");
-    } catch (err) {
-      console.log("Send error:", err);
-    }
+    setMessage("");
   };
 
-  // ➕ ADD FRIEND
+  /* ================= ADD FRIEND ================= */
   const handleAddFriend = async () => {
     if (!query.trim()) return;
 
@@ -116,14 +104,14 @@ export default function Chat() {
     setUsers(res.data);
   };
 
-  // 📋 COPY LINK
+  /* ================= COPY ================= */
   const copyLink = () => {
     navigator.clipboard.writeText(referralLink);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // 🔽 AUTO SCROLL
+  /* ================= AUTO SCROLL ================= */
   useEffect(() => {
     const box = document.querySelector(".chat-box");
     if (box) box.scrollTop = box.scrollHeight;
@@ -132,36 +120,31 @@ export default function Chat() {
   return (
     <div className={`app ${theme}`}>
 
-      {/* 🔥 REFERRAL BOX */}
-      <div style={{ padding: "10px", borderBottom: "1px solid gray" }}>
-        <p style={{ fontSize: "12px" }}>
-          Code: <b>{myCode || "Loading..."}</b>
-        </p>
-
-        <p style={{ fontSize: "10px", wordBreak: "break-all" }}>
-          {referralLink}
-        </p>
-
+      {/* 🔥 REFERRAL */}
+      <div className="ref-box">
+        <p>Code: <b>{myCode}</b></p>
         <button onClick={copyLink}>
           {copied ? "Copied ✅" : "Copy Link"}
         </button>
       </div>
 
-      {/* LEFT */}
+      {/* ================= SIDEBAR ================= */}
       <div className="sidebar">
         <h3>Friends</h3>
 
-        <input
-          placeholder="email / username"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        <button onClick={handleAddFriend}>Add</button>
+        <div className="add-user">
+          <input
+            placeholder="email / username"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <button onClick={handleAddFriend}>+</button>
+        </div>
 
         {users.map((u) => (
           <div
             key={u._id}
-            className="user-item"
+            className={`user-item ${selectedUser?._id === u._id ? "active" : ""}`}
             onClick={() => setSelectedUser(u)}
           >
             {u.username || u.email}
@@ -169,14 +152,19 @@ export default function Chat() {
         ))}
       </div>
 
-      {/* RIGHT */}
+      {/* ================= CHAT ================= */}
       <div className="chat">
+
+        {/* HEADER */}
         <div className="top-bar">
-          <h3>
-            {selectedUser
-              ? selectedUser.username || selectedUser.email
-              : "Select user"}
-          </h3>
+          <div>
+            <h3>
+              {selectedUser
+                ? selectedUser.username || selectedUser.email
+                : "Select user"}
+            </h3>
+            {selectedUser && <span className="status">🟢 Online</span>}
+          </div>
 
           <button
             onClick={() => {
@@ -188,42 +176,56 @@ export default function Chat() {
           </button>
         </div>
 
+        {/* MESSAGES */}
         <div className="chat-box">
           {messages.map((m, i) => (
             <div
               key={i}
-              className={
-                m.sender === userId ? "msg-other" : "msg-me"
-              }
+              className={m.sender === userId ? "msg-other" : "msg-me"}
             >
               {m.content}
             </div>
           ))}
         </div>
 
+        {/* INPUT */}
         <div className="input-area">
+          <button onClick={() => setShowEmoji(!showEmoji)}>😊</button>
+
           <input
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Type..."
+            placeholder="Type a message..."
           />
+
           <button onClick={sendMessage}>Send</button>
+
+          {showEmoji && (
+            <div className="emoji-box">
+              <EmojiPicker
+                onEmojiClick={(e) =>
+                  setMessage((prev) => prev + e.emoji)
+                }
+              />
+            </div>
+          )}
         </div>
 
-        {/* 🎨 THEME */}
-        <select
-          value={theme}
-          onChange={(e) => {
-            setTheme(e.target.value);
-            localStorage.setItem("theme", e.target.value);
-          }}
-        >
-          <option value="dark">Dark</option>
-          <option value="spiderman">Spiderman</option>
-          <option value="anime">Anime</option>
-          <option value="gow">God of War</option>
-          <option value="retro">Retro</option>
-        </select>
+        {/* 🎨 THEME SWITCHER */}
+        <div className="theme-switcher">
+          {["dark", "spiderman", "anime", "gow", "retro"].map((t) => (
+            <button
+              key={t}
+              className={theme === t ? "active" : ""}
+              onClick={() => {
+                setTheme(t);
+                localStorage.setItem("theme", t);
+              }}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
