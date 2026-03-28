@@ -193,7 +193,7 @@ export default function Chat() {
             <div
               key={i}
               className={
-                m.sender === userId ? "msg-me" : "msg-other"
+                m.sender === userId ? "msg-other" : "msg-me"
               }
             >
               {m.content}
